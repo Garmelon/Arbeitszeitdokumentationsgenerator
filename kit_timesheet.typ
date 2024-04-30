@@ -11,6 +11,7 @@
 
 #let _kit_green = rgb("#009682")
 #let _kit_stroke = 0.2mm
+#let _kit_rows = 22
 
 #let _frame(body) = {
   set text(lang: "de", font: "Liberation Sans")
@@ -141,7 +142,7 @@
   set text(size: 10pt)
   table(
     columns: (1fr, 23.3mm, 23.3mm, 23.3mm, 23.3mm, 23.3mm),
-    rows: array.range(24).map(_ => 5.05mm),
+    rows: array.range(_kit_rows + 2).map(_ => 5.05mm),
     align: center + horizon,
     stroke: _kit_stroke,
     inset: 1mm,
@@ -250,6 +251,114 @@
   _pad_int(m, char: "0", width: 2)
 }
 
+#let _divides(divident, divisor) = calc.rem(divident, divisor) == 0
+#let _is_leap_year(year) = _divides(year, 4) and not (_divides(year, 100) and not _divides(year, 400))
+
+#let _month_length(year, month) = {
+  assert(1 <= month and month <= 12)
+  if (1, 3, 5, 7, 8, 10, 12).contains(month) { 31 }
+  else if (4, 6, 9, 11).contains(month) { 30 }
+  else if _is_leap_year(year) { 29 }
+  else { 28 }
+}
+
+#let _next_day(date) = {
+  let year = date.year()
+  let month = date.month()
+  let day = date.day()
+
+  if day < _month_length(year, month) {
+    day += 1
+  } else if month < 12 {
+    month += 1
+    day = 1
+  } else {
+    year += 1
+    month = 1
+    day = 1
+  }
+
+  datetime(year: year, month: month, day: day)
+}
+
+#let _prev_day(date) = {
+  let year = date.year()
+  let month = date.month()
+  let day = date.day()
+
+  if day > 1 {
+    day -= 1
+  } else if month > 1 {
+    month -= 1
+    day = _month_length(year, month)
+  } else {
+    year -= 1
+    month = 12
+    day = 31
+  }
+
+  datetime(year: year, month: month, day: day)
+}
+
+#let _move_by(date, days) = {
+  while days > 0 {
+    date = _next_day(date)
+    days -= 1
+  }
+
+  while days < 0 {
+    date = _prev_day(date)
+    days += 1
+  }
+
+  date
+}
+
+#let _computus(year) = {
+  // https://en.wikipedia.org/wiki/Date_of_Easter#Anonymous_Gregorian_algorithm
+  let Y = year
+  let a = calc.rem(Y, 19)
+  let b = calc.quo(Y, 100)
+  let c = calc.rem(Y, 100)
+  let d = calc.quo(b, 4)
+  let e = calc.rem(b, 4)
+  // let f = calc.quo(b + 8, 25)
+  // let g = calc.quo(b - f + 1, 3)
+  let g = calc.quo(8*b + 13, 25)
+  let h = calc.rem(19*a + b - d - g + 15, 30)
+  let i = calc.quo(c, 4)
+  let k = calc.rem(c, 4)
+  let l = calc.rem(32 + 2*e + 2*i - h - k, 7)
+  // let m = calc.quo(a + 11*h + 22*l, 451)
+  let m = calc.quo(a + 11*h + 19*l, 433)
+  // let n = calc.quo(h + l - 7*m + 114, 31)
+  let n = calc.quo(h + l - 7*m + 90, 25)
+  // let o = calc.rem(h + l - 7*m + 114, 31)
+  let p = calc.rem(h + l - 7*m + 33*n + 19, 32)
+  let month = n
+  // let day = o + 1
+  let day = p
+  datetime(year: year, month: month, day: day)
+}
+
+#let _public_holidays_germany_bw(year) = {
+  let easter = _computus(year)
+  (
+    (name: "Neujahr", date: datetime(year: year, month: 1, day: 1)),
+    (name: "Heilige Drei Könige", date: datetime(year: year, month: 1, day: 6)),
+    (name: "Karfreitag", date: _move_by(easter, -2)),
+    (name: "Ostermontag", date: _move_by(easter, 1)),
+    (name: "Tag der Arbeit", date: datetime(year: year, month: 5, day: 1)),
+    (name: "Christi Himmelfahrt", date: _move_by(easter, 39)),
+    (name: "Pfingstmontag", date: _move_by(easter, 50)),
+    (name: "Fronleichnam", date: _move_by(easter, 60)),
+    (name: "Tag der Deutschen Einheit", date: datetime(year: year, month: 10, day: 3)),
+    (name: "Allerheiligen", date: datetime(year: year, month: 11, day: 1)),
+    (name: "Erster Weihnachtsfeiertag", date: datetime(year: year, month: 12, day: 25)),
+    (name: "Zweiter Weihnachtsfeiertag", date: datetime(year: year, month: 12, day: 26)),
+  )
+}
+
 ////////////////
 // Validation //
 ////////////////
@@ -259,14 +368,70 @@
   assert(condition, message: message)
 }
 
-#let _check_entry(row, entry) = {
-  let e = entry
-  _assert_entry(row, e, e.start <= e.end, "start must be before end")
-  _assert_entry(row, e, e.rest <= e.end - e.start, "rest too long")
+#let _check_entries(year, month, entries) = {
+  for (row, e) in entries.enumerate(start: 1) {
+    _assert_entry(row, e, e.start <= e.end, "start must be before end")
+    _assert_entry(row, e, e.rest <= e.end - e.start, "rest too long")
 
-  // I think the previous two checks should make it impossible for this assert
-  // to fail, but just to be careful...
-  _assert_entry(row, e, e.duration >= 0, "duration must be positive")
+    // I think the previous two checks should make it impossible for this assert
+    // to fail, but just to be careful...
+    _assert_entry(row, e, e.duration >= 0, "duration must be positive")
+
+    // Date checks
+    let date = datetime(year: year, month: month, day: e.day)
+    _assert_entry(row, e, date.weekday() != 6, "day is a Saturday")
+    _assert_entry(row, e, date.weekday() != 7, "day is a Sunday")
+    for holiday in _public_holidays_germany_bw(year) {
+      _assert_entry(row, e, date != holiday.date, "day is a holiday (" + holiday.name + ")")
+    }
+
+    // Time range checks
+    // https://github.com/kit-sdq/TimeSheetGenerator/blob/2e80a56483832fb96087b8145c6cf311ec417c60/src/main/java/checker/MiLoGChecker.java#L30-L31
+    let earliest = _parse_duration("06:00")
+    let latest = _parse_duration("22:00")
+    _assert_entry(row, e, e.start >= earliest, "must not work before 06:00")
+    _assert_entry(row, e, e.end <= latest, "must not work after 22:00")
+  }
+}
+
+#let _assert_day(day, condition, message) = {
+  message = "day " + str(day) + ": " + message
+  assert(condition, message: message)
+}
+
+#let _check_days(entries) = {
+  let by_day = (:)
+  for entry in entries {
+    let key = str(entry.day)
+    let info = by_day.at(key, default: (duration: 0, rest: 0))
+    info.duration += entry.duration
+    info.rest += entry.rest
+    by_day.insert(key, info)
+  }
+
+  for (day, info) in by_day.pairs() {
+    // https://github.com/kit-sdq/TimeSheetGenerator/blob/2e80a56483832fb96087b8145c6cf311ec417c60/src/main/java/checker/MiLoGChecker.java#L32
+    let max_duration = _parse_duration("10:00")
+    _assert_day(day, info.duration <= max_duration, "must not work more than 10 hours per day")
+
+    // https://github.com/kit-sdq/TimeSheetGenerator/blob/2e80a56483832fb96087b8145c6cf311ec417c60/src/main/java/checker/MiLoGChecker.java#L35
+    if info.duration > _parse_duration("09:00") {
+      _assert_day(day,
+        info.rest >= _parse_duration("00:45"),
+        "at least 45 minutes rest required after more than 9 hours of work",
+      )
+    } else if info.duration > _parse_duration("06:00") {
+      _assert_day(day,
+        info.rest >= _parse_duration("00:30"),
+        "30 minutes rest required after more than 6 hours of work",
+      )
+    }
+  }
+}
+
+#let _check_total(total) = {
+  let max_total = _parse_duration("85:00")
+  assert(total <= max_total, message: "must not work more than 85 hours per month")
 }
 
 //////////////////
@@ -326,6 +491,7 @@
 
   carry_prev_month = _parse_duration(carry_prev_month)
   entries = entries.pos()
+  assert(entries.len() <= _kit_rows, message: "at most " + str(_kit_rows) + " entries allowed")
 
   let monthly = monthly_hours * 60
   let holiday = entries.filter(e => e.note == notes.Urlaub).map(e => e.duration).sum(default: 0)
@@ -333,9 +499,9 @@
   let carry_next_month = carry_prev_month + total - monthly
 
   if validate {
-    for (row, entry) in entries.enumerate(start: 1) {
-      _check_entry(row, entry)
-    }
+    _check_entries(year, month, entries)
+    _check_days(entries)
+    _check_total(total)
   }
 
   let rows = entries.map(e => (
