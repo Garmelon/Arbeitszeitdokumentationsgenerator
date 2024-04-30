@@ -1,0 +1,10 @@
+[package]
+name = "kit_timesheets"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.82"
+axum = "0.7.5"
+clap = { version = "4.5.4", features = ["derive", "deprecated"] }
+tokio = { version = "1.37.0", features = ["full"] }
