@@ -60,7 +60,7 @@ Available entries are:
 
 - `notes.Urlaub` (value: `"U"`)
 - `notes.Krankheit` (value: `"K"`)
-- `notes.Feiertage` (value: `"F"`)
+- `notes.Feiertag` (value: `"F"`)
 - `notes.Sonstiges` (value: `"S"`)
 
 ### `entry` (function)
