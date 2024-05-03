@@ -1,3 +1,5 @@
+mod render;
+
 use axum::{routing::get, Router};
 use clap::Parser;
 use maud::{html, Markup};

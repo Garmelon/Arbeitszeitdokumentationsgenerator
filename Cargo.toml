@@ -7,5 +7,9 @@ edition = "2021"
 anyhow = "1.0.82"
 axum = "0.7.5"
 clap = { version = "4.5.4", features = ["derive", "deprecated"] }
+comemo = "0.4.0"
+fontdb = "0.16.2"
 maud = { version = "0.26.0", features = ["axum"] }
 tokio = { version = "1.37.0", features = ["full"] }
+typst = "0.11.0"
+typst-pdf = "0.11.0"
