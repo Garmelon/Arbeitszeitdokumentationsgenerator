@@ -52,6 +52,35 @@ pub async fn get() -> Markup {
                         }
                     }
                 }
+
+                div #table {
+                    div #task { "Tätigkeit" br; "(Stichwort, Projekt)" }
+                    div { "Tag" }
+                    div { "Beginn" }
+                    div { "Ende" }
+                    div { "Pause" }
+                    div { "Arbeitszeit" }
+                    div { }
+                    div { "(hh:mm)" }
+                    div { "(hh:mm)" }
+                    div { "(hh:mm)" }
+                    div { }
+
+                    @for _ in 0..22 {
+                        div { input .i-task name="task[]" type="text" {} }
+                        div { input .i-day name="day[]" type="number" value="1" {} }
+                        div { input .i-dur name="start[]" type="text" placeholder="12:34" {} }
+                        div { input .i-dur name="end[]" type="text" placeholder="12:34" {} }
+                        div { input .i-dur name="pause[]" type="text" placeholder="01:23" value="00:00" {} }
+                        div { select name="note[]" value="" {
+                            option value="" { "Normal" }
+                            option value="U" { "Urlaub" }
+                            option value="K" { "Krankheit" }
+                            option value="F" { "Feiertag" }
+                            option value="S" { "Sonstiges" }
+                        } }
+                    }
+                }
             }
         },
     )
