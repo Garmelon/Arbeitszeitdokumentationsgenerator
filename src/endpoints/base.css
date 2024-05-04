@@ -1,0 +1,50 @@
+:root {
+  font-family: Arial, FreeSans, sans-serif;
+}
+form {
+  max-width: 210mm; /* DIN-A 4 */
+  margin: 0 auto;
+  padding: 0 5mm 5mm;
+  border: 2px solid black;
+  border-radius: 0 8mm 0 8mm;
+}
+h1 {
+  color: #009682;
+  text-align: center;
+}
+label {
+  font-weight: bold;
+}
+#header {
+  display: grid;
+  grid: auto-flow / 2fr 1fr 1fr;
+  gap: 1mm;
+}
+#l-month {
+  grid-column: 2;
+  text-align: center;
+}
+#i-name,
+#i-department,
+#mhhr {
+  grid-column: 2 / 4;
+}
+#gfub {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+#mhhr {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+#i-monthlyhours {
+  width: 6ch;
+}
+#l-hourlyrate {
+  padding-left: 4ch;
+}
+#i-hourlyrate {
+  width: 8ch;
+}
