@@ -1,3 +1,5 @@
+use std::{fs, path::PathBuf, sync::OnceLock};
+
 use comemo::Prehashed;
 use typst::{
     diag::{FileError, FileResult, SourceResult},
@@ -5,7 +7,7 @@ use typst::{
     foundations::{Bytes, Datetime, Smart},
     model::Document,
     syntax::{FileId, Source},
-    text::{Font, FontBook},
+    text::{Font, FontBook, FontInfo},
     Library, World,
 };
 
@@ -148,18 +150,68 @@ fn fmt_timesheet(ts: Timesheet) -> String {
 // Evaluate source //
 /////////////////////
 
+// The logic for detecting and loading fonts was ripped straight from:
+// https://github.com/typst/typst/blob/69dcc89d84176838c293b2d59747cd65e28843ad/crates/typst-cli/src/fonts.rs
+// https://github.com/typst/typst/blob/69dcc89d84176838c293b2d59747cd65e28843ad/crates/typst-cli/src/world.rs#L193-L195
+
+struct FontSlot {
+    path: PathBuf,
+    index: u32,
+    font: OnceLock<Option<Font>>,
+}
+
+impl FontSlot {
+    pub fn get(&self) -> Option<Font> {
+        self.font
+            .get_or_init(|| {
+                let data = fs::read(&self.path).ok()?.into();
+                Font::new(data, self.index)
+            })
+            .clone()
+    }
+}
+
+fn load_system_fonts() -> (FontBook, Vec<FontSlot>) {
+    let mut book = FontBook::new();
+    let mut fonts = vec![];
+
+    let mut db = fontdb::Database::new();
+    db.load_system_fonts();
+
+    for face in db.faces() {
+        let path = match &face.source {
+            fontdb::Source::File(path) | fontdb::Source::SharedFile(path, _) => path,
+            fontdb::Source::Binary(_) => continue,
+        };
+
+        if let Some(info) = db.with_face_data(face.id, FontInfo::new).unwrap() {
+            book.push(info);
+            fonts.push(FontSlot {
+                path: path.clone(),
+                index: face.index,
+                font: OnceLock::new(),
+            })
+        }
+    }
+
+    (book, fonts)
+}
+
 struct DummyWorld {
     library: Prehashed<Library>,
     book: Prehashed<FontBook>,
     main: Source,
+    fonts: Vec<FontSlot>,
 }
 
 impl DummyWorld {
     fn new(main: String) -> Self {
+        let (book, fonts) = load_system_fonts();
         Self {
             library: Prehashed::new(Library::builder().build()),
-            book: Prehashed::new(FontBook::new()),
+            book: Prehashed::new(book),
             main: Source::detached(main),
+            fonts,
         }
     }
 }
@@ -193,12 +245,12 @@ impl World for DummyWorld {
         }
     }
 
-    fn font(&self, _index: usize) -> Option<Font> {
-        panic!("this should never be called")
+    fn font(&self, index: usize) -> Option<Font> {
+        self.fonts[index].get()
     }
 
     fn today(&self, _offset: Option<i64>) -> Option<Datetime> {
-        panic!("this should never be called")
+        panic!("datetimes are not supported")
     }
 }
 
