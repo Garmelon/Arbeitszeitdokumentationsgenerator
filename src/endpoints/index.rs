@@ -34,7 +34,7 @@ pub async fn get() -> Markup {
                     input #i-name name="name" type="text" placeholder="McStudentface, Student" {}
 
                     label #l-staffid for="i-staffid" { "Personalnummer:" }
-                    input #i-staffid name="staff_id" type="number" placeholder="1337420" {}
+                    input #i-staffid name="staff_id" type="text" placeholder="1337420" {}
 
                     div #gfub {
                         label #l-gf title="Großforschung" { "GF: "
@@ -52,12 +52,12 @@ pub async fn get() -> Markup {
                     label #l-monthlyhours for="i-monthlyhours" { "Vertraglich vereinbarte Arbeitszeit:" }
                     div #mhhr {
                         span {
-                            input #i-monthlyhours name="monthly_hours" type="number" value="40" {}
+                            input #i-monthlyhours name="monthly_hours" type="number" value="40" min="0" {}
                             " Std."
                         }
                         span {
                             label #l-hourlywage for="i-hourlywage" { "Stundensatz: " }
-                            input #i-hourlywage name="hourly_wage" type="number" step="0.01" placeholder="14.09" {}
+                            input #i-hourlywage name="hourly_wage" type="number" step="0.01" value="14.09" {}
                             " €"
                         }
                     }
@@ -85,7 +85,7 @@ pub async fn get() -> Markup {
 
                     @for _ in 0..22 {
                         div { input .i-task name="task" type="text" {} }
-                        div { input .i-day name="day" type="number" value="1" {} }
+                        div { input .i-day name="day" type="number" placeholder="1" min="1" max="31" {} }
                         div { input .i-dur name="start" type="text" placeholder="12:34" {} }
                         div { input .i-dur name="end" type="text" placeholder="12:34" {} }
                         div { input .i-dur name="rest" type="text" placeholder="00:00" {} }
@@ -118,7 +118,7 @@ pub struct PostForm {
     hourly_wage: String,
     carry_prev_month: String,
     task: Vec<String>,
-    day: Vec<u32>,
+    day: Vec<Option<u32>>,
     start: Vec<String>,
     end: Vec<String>,
     rest: Vec<String>,
@@ -197,7 +197,7 @@ pub async fn post(form: Form<PostForm>) -> Response {
             };
             Some(Entry {
                 task,
-                day,
+                day: day?,
                 start,
                 end,
                 rest,
