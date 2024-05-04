@@ -14,7 +14,8 @@ struct Args {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let app = Router::<()>::new().route("/", get(endpoints::index::get));
+    let app =
+        Router::<()>::new().route("/", get(endpoints::index::get).post(endpoints::index::post));
     let listener = TcpListener::bind(args.addr).await?;
     axum::serve(listener, app).await?;
 

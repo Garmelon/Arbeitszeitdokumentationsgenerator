@@ -81,3 +81,9 @@ button {
   margin: 0 auto;
   font-size: 1.5em;
 }
+#info.success {
+  color: #070;
+}
+#info.error {
+  color: #900;
+}

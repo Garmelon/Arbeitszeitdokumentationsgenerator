@@ -6,10 +6,12 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.82"
 axum = "0.7.5"
+axum-extra = { version = "0.9.3", features = ["form"] }
 clap = { version = "4.5.4", features = ["derive", "deprecated"] }
 comemo = "0.4.0"
 fontdb = "0.16.2"
 maud = { version = "0.26.0", features = ["axum"] }
+serde = { version = "1.0.200", features = ["derive"] }
 time = { version = "0.3.36", features = ["macros", "formatting", "local-offset"] }
 tokio = { version = "1.37.0", features = ["full"] }
 typst = "0.11.0"

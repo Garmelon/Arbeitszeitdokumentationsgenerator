@@ -1,7 +1,16 @@
+use axum::{
+    http::{header, StatusCode},
+    response::{IntoResponse, Response},
+};
+use axum_extra::extract::Form;
 use maud::{html, Markup, PreEscaped};
+use serde::Deserialize;
 use time::{macros::format_description, OffsetDateTime};
 
-use crate::endpoints::page;
+use crate::{
+    endpoints::page,
+    render::{self, Entry, Note, Timesheet, WorkingArea},
+};
 
 pub async fn get() -> Markup {
     let now = OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc());
@@ -11,9 +20,10 @@ pub async fn get() -> Markup {
     page(
         html! {
             style { (PreEscaped(include_str!("index.css"))) }
+            script type="module" { (PreEscaped(include_str!("index.js"))) }
         },
         html! {
-            form {
+            form #form {
                 h1 { "Arbeitszeitdokumentationsgenerator" }
 
                 div #header {
@@ -28,11 +38,11 @@ pub async fn get() -> Markup {
 
                     div #gfub {
                         label #l-gf title="Großforschung" { "GF: "
-                            input #i-gf name="working_area" type="radio" value="gf" {}
+                            input #i-gf name="working_area" type="radio" value="GF" {}
                         }
 
                         label #l-ub for="i-ub" title="Unibereich" { "UB: "
-                            input #i-ub name="working_area" type="radio" value="ub" {}
+                            input #i-ub name="working_area" type="radio" value="UB" checked {}
                         }
                     }
 
@@ -45,9 +55,9 @@ pub async fn get() -> Markup {
                             input #i-monthlyhours name="monthly_hours" type="number" value="40" {}
                             " Std."
                         }
-                        label #l-hourlyrate for="i-hourlyrate" { "Stundensatz:" }
+                        label #l-hourlywage for="i-hourlywage" { "Stundensatz:" }
                         span {
-                            input #i-hourlyrate name="hourly_rate" type="number" step="0.01" placeholder="14.09" {}
+                            input #i-hourlywage name="hourly_wage" type="number" step="0.01" placeholder="14.09" {}
                             " €"
                         }
                     }
@@ -67,12 +77,12 @@ pub async fn get() -> Markup {
                     div { }
 
                     @for _ in 0..22 {
-                        div { input .i-task name="task[]" type="text" {} }
-                        div { input .i-day name="day[]" type="number" value="1" {} }
-                        div { input .i-dur name="start[]" type="text" placeholder="12:34" {} }
-                        div { input .i-dur name="end[]" type="text" placeholder="12:34" {} }
-                        div { input .i-dur name="pause[]" type="text" placeholder="01:23" value="00:00" {} }
-                        div { select name="note[]" value="" {
+                        div { input .i-task name="task" type="text" {} }
+                        div { input .i-day name="day" type="number" value="1" {} }
+                        div { input .i-dur name="start" type="text" placeholder="12:34" {} }
+                        div { input .i-dur name="end" type="text" placeholder="12:34" {} }
+                        div { input .i-dur name="rest" type="text" placeholder="00:00" {} }
+                        div { select name="note" value="" {
                             option value="" { "Normal" }
                             option value="U" { "Urlaub" }
                             option value="K" { "Krankheit" }
@@ -82,8 +92,120 @@ pub async fn get() -> Markup {
                     }
                 }
 
-                button #submit { "Arbeitszeitdokumentation erstellen" }
+                button #submit type="button" { "Arbeitszeitdokumentation generieren" }
+
+                pre #info {}
             }
         },
     )
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PostForm {
+    month: String,
+    name: String,
+    staff_id: String,
+    working_area: String,
+    department: String,
+    monthly_hours: u32,
+    hourly_wage: String,
+    task: Vec<String>,
+    day: Vec<u32>,
+    start: Vec<String>,
+    end: Vec<String>,
+    rest: Vec<String>,
+    note: Vec<String>,
+}
+
+fn error_response<S: ToString>(msg: S) -> Response {
+    (StatusCode::BAD_REQUEST, msg.to_string()).into_response()
+}
+
+fn parse_month(month_str: &str) -> Option<(u32, u32)> {
+    let mut parts = month_str.split('-');
+
+    let year = parts.next()?.parse::<u32>().ok()?;
+    let month = parts.next()?.parse::<u32>().ok()?;
+
+    if parts.next().is_some() {
+        return None;
+    }
+
+    Some((year, month))
+}
+
+pub async fn post(form: Form<PostForm>) -> Response {
+    let form = form.0;
+
+    // Parse working area
+    let working_area = match &form.working_area as &str {
+        "GF" => WorkingArea::Großforschung,
+        "UB" => WorkingArea::Unibereich,
+        _ => return error_response(format!("invalid working area: {:?}", form.working_area)),
+    };
+
+    // Parse month
+    let Some((year, month)) = parse_month(&form.month) else {
+        return error_response(format!("invalid month: {:?}", form.month));
+    };
+
+    // Parse rests
+    let rests = form
+        .rest
+        .into_iter()
+        .map(|r| if r.is_empty() { None } else { Some(r) })
+        .collect::<Vec<_>>();
+
+    // Parse notes
+    let mut notes = vec![];
+    for note in form.note {
+        let note = match &note as &str {
+            "" => None,
+            "U" => Some(Note::Urlaub),
+            "K" => Some(Note::Krankheit),
+            "F" => Some(Note::Feiertag),
+            "S" => Some(Note::Sonstiges),
+            _ => return error_response(format!("invalid note: {note:?}")),
+        };
+        notes.push(note)
+    }
+
+    let entries = (form.task.into_iter())
+        .zip(form.day.into_iter())
+        .zip(form.start.into_iter())
+        .zip(form.end.into_iter())
+        .zip(rests.into_iter())
+        .zip(notes.into_iter())
+        .filter_map(|(((((task, day), start), end), rest), note)| {
+            if task.is_empty() || start.is_empty() || end.is_empty() {
+                return None;
+            };
+            Some(Entry {
+                task,
+                day,
+                start,
+                end,
+                rest,
+                note,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    let timesheet = Timesheet {
+        name: form.name,
+        staff_id: form.staff_id,
+        department: form.department,
+        working_area,
+        monthly_hours: form.monthly_hours,
+        hourly_wage: form.hourly_wage,
+        validate: true,
+        year,
+        month,
+        entries,
+    };
+
+    match render::render(timesheet) {
+        Ok(pdf) => ([(header::CONTENT_TYPE, "application/pdf")], pdf).into_response(),
+        Err(errors) => error_response(errors.join("\n")),
+    }
 }
