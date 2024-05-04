@@ -81,6 +81,8 @@ pub async fn get() -> Markup {
                         } }
                     }
                 }
+
+                button #submit { "Arbeitszeitdokumentation erstellen" }
             }
         },
     )
