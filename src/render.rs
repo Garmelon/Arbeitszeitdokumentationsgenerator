@@ -60,8 +60,18 @@ pub struct Timesheet {
 ///////////////////////
 
 fn fmt_str(s: &str) -> String {
-    // https://github.com/typst/typst/blob/69dcc89d84176838c293b2d59747cd65e28843ad/crates/typst-syntax/src/ast.rs#L1041-L1082
-    format!("\"{}\"", s.replace('\\', "\\\\"))
+    // https://github.com/typst/typst/blob/v0.11.0/crates/typst-syntax/src/lexer.rs#L699-L713
+    // https://github.com/typst/typst/blob/v0.11.0/crates/typst-syntax/src/ast.rs#L1041-L1082
+    let quoted = s
+        .chars()
+        .map(|c| match c {
+            '"' => "\\\"".to_string(),
+            '\\' => "\\\\".to_string(),
+            c => c.to_string(),
+        })
+        .collect::<String>();
+
+    format!("\"{}\"", quoted)
 }
 
 fn fmt_int(n: u32) -> String {
