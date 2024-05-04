@@ -1,8 +1,13 @@
 use maud::{html, Markup};
+use time::{macros::format_description, Date, OffsetDateTime};
 
 use crate::endpoints::page;
 
 pub async fn get() -> Markup {
+    let now = OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc());
+    let month = now.date().replace_day(1).unwrap().previous_day().unwrap();
+    let month = month.format(format_description!("[year]-[month]")).unwrap();
+
     page(
         html! {
             style { (include_str!("base.css")) }
@@ -13,7 +18,7 @@ pub async fn get() -> Markup {
 
                 div #header {
                     label #l-month for="i-month" { "Monat / Jahr:" }
-                    input #i-month name="month" type="month" placeholder="2024-04" {} // TODO Fill in previous month by default
+                    input #i-month name="month" type="month" placeholder=(month) value=(month) {}
 
                     label #l-name for="i-name" { "Name, Vorname des/r Beschäftigten:" }
                     input #i-name name="name" type="text" placeholder="McStudentface, Student" {}
