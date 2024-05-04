@@ -55,10 +55,17 @@ pub async fn get() -> Markup {
                             input #i-monthlyhours name="monthly_hours" type="number" value="40" {}
                             " Std."
                         }
-                        label #l-hourlywage for="i-hourlywage" { "Stundensatz:" }
                         span {
+                            label #l-hourlywage for="i-hourlywage" { "Stundensatz: " }
                             input #i-hourlywage name="hourly_wage" type="number" step="0.01" placeholder="14.09" {}
                             " €"
+                        }
+                    }
+
+                    div #carry {
+                        span {
+                            label #l-carry for="i-carry" { "Übertrag vom Vormonat: " }
+                            input #i-carry .i-dur name="carry_prev_month" type="text" placeholder="00:00" {}
                         }
                     }
                 }
@@ -109,6 +116,7 @@ pub struct PostForm {
     department: String,
     monthly_hours: u32,
     hourly_wage: String,
+    carry_prev_month: String,
     task: Vec<String>,
     day: Vec<u32>,
     start: Vec<String>,
@@ -170,6 +178,13 @@ pub async fn post(form: Form<PostForm>) -> Response {
         notes.push(note)
     }
 
+    // Parse carry
+    let carry_prev_month = if form.carry_prev_month.is_empty() {
+        None
+    } else {
+        Some(form.carry_prev_month)
+    };
+
     let entries = (form.task.into_iter())
         .zip(form.day.into_iter())
         .zip(form.start.into_iter())
@@ -199,6 +214,7 @@ pub async fn post(form: Form<PostForm>) -> Response {
         monthly_hours: form.monthly_hours,
         hourly_wage: form.hourly_wage,
         validate: true,
+        carry_prev_month,
         year,
         month,
         entries,

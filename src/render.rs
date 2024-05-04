@@ -52,6 +52,7 @@ pub struct Timesheet {
     pub monthly_hours: u32,
     pub hourly_wage: String,
     pub validate: bool,
+    pub carry_prev_month: Option<String>,
     pub year: u32,
     pub month: u32,
     pub entries: Vec<Entry>,
@@ -137,6 +138,9 @@ fn fmt_timesheet(ts: Timesheet) -> String {
     lines.push(format!("  monthly_hours: {},", fmt_int(ts.monthly_hours)));
     lines.push(format!("  hourly_wage: {},", fmt_str(&ts.hourly_wage)));
     lines.push(format!("  validate: {},", fmt_bool(ts.validate)));
+    if let Some(carry) = ts.carry_prev_month {
+        lines.push(format!("  carry_prev_month: {},", fmt_str(&carry)));
+    }
     lines.push(format!("  year: {},", fmt_int(ts.year)));
     lines.push(format!("  month: {},", fmt_int(ts.month)));
     for entry in ts.entries {

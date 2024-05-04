@@ -42,11 +42,17 @@ label {
 #i-monthlyhours {
   width: 6ch;
 }
-#l-hourlyrate {
+#l-hourlywage {
   padding-left: 4ch;
 }
-#i-hourlyrate {
+#i-hourlywage {
   width: 8ch;
+}
+#carry {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: end;
+  align-items: baseline;
 }
 #table {
   display: grid;
