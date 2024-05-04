@@ -1,4 +1,4 @@
-use maud::{html, Markup};
+use maud::{html, Markup, PreEscaped};
 use time::{macros::format_description, Date, OffsetDateTime};
 
 use crate::endpoints::page;
@@ -10,7 +10,7 @@ pub async fn get() -> Markup {
 
     page(
         html! {
-            style { (include_str!("base.css")) }
+            style { (PreEscaped(include_str!("base.css"))) }
         },
         html! {
             form {
