@@ -1,6 +1,7 @@
 use maud::{html, Markup};
 
 pub mod index;
+pub mod tsg;
 
 fn page(head: Markup, body: Markup) -> Markup {
     html! {

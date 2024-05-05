@@ -26,6 +26,13 @@ pub async fn get() -> Markup {
             form #form {
                 h1 { "Arbeitszeitdokumentationsgenerator" }
 
+                p {
+                    "Want to use "
+                    a href="https://github.com/kit-sdq/TimeSheetGenerator" { "TimeSheetGenerator" }
+                    "-compatible JSON instead? "
+                    a href="/tsg" { "Go here!" }
+                }
+
                 div #header {
                     label #l-month for="i-month" { "Monat / Jahr:" }
                     input #i-month name="month" type="month" placeholder=(month) value=(month) {}
