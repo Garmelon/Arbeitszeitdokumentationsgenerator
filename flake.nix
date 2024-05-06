@@ -16,6 +16,8 @@
         let
           pkgs = import nixpkgs { inherit system; };
           naersk' = pkgs.callPackage naersk { };
+          # Create a fontconfig file with liberation_ttf (contains "Liberation Sans")
+          fonts = pkgs.makeFontsConf { fontDirectories = with pkgs; [ liberation_ttf ]; };
         in
         rec {
           default = kit-timesheets;
@@ -39,8 +41,7 @@
               WorkingDir = "/tmp";
               Env = [
                 # Fontconfig needs to be babysitted a bit in containers
-                "FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
-                "FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/"
+                "FONTCONFIG_FILE=${fonts}"
                 # Useful for read-only containers, as fontconfig will create a
                 # cache there
                 "HOME=/tmp"
