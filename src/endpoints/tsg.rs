@@ -27,8 +27,11 @@ pub async fn get() -> Markup {
                     " eingeben."
                 }
 
-                textarea name="global" placeholder="Global.json" {}
-                textarea name="month" placeholder="Month.json" {}
+                label for="i-global" { "Global.json" }
+                textarea #i-global name="global" placeholder="{}" {}
+
+                label for="i-month" { "Month.json" }
+                textarea #i-month name="month" placeholder="{}" {}
 
                 button #submit type="button" { "Arbeitszeitdokumentation generieren" }
 

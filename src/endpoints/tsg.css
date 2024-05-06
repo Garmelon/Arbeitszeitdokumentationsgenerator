@@ -12,6 +12,11 @@ h1 {
   color: #009682;
   text-align: center;
 }
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 4mm;
+}
 textarea {
   display: block;
   width: 100%;
