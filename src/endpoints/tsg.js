@@ -33,7 +33,7 @@ submit.addEventListener("click", async () => {
   try {
     showStatus("Generiere...");
 
-    const response = await fetch("/tsg", {
+    const response = await fetch(".", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: dataJson,

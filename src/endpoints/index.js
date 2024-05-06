@@ -29,7 +29,7 @@ submit.addEventListener("click", async () => {
   try {
     showStatus("Generiere...");
 
-    const response = await fetch("/", {
+    const response = await fetch(".", {
       method: "post",
       body: new URLSearchParams(data),
     });

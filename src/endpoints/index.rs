@@ -30,7 +30,7 @@ pub async fn get() -> Markup {
                     "Want to use "
                     a href="https://github.com/kit-sdq/TimeSheetGenerator" { "TimeSheetGenerator" }
                     "-compatible JSON instead? "
-                    a href="/tsg" { "Go here!" }
+                    a href="tsg/" { "Go here!" }
                 }
 
                 div #header {

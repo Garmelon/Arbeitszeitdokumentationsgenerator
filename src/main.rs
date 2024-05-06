@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::<()>::new()
         .route("/", get(endpoints::index::get).post(endpoints::index::post))
-        .route("/tsg", get(endpoints::tsg::get).post(endpoints::tsg::post));
+        .route("/tsg/", get(endpoints::tsg::get).post(endpoints::tsg::post));
     let listener = TcpListener::bind(args.addr).await?;
     axum::serve(listener, app).await?;
 

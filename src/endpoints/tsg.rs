@@ -23,7 +23,7 @@ pub async fn get() -> Markup {
 
                 p {
                     "Want to use a fancy-looking form instead? "
-                    a href="/" { "Go here!" }
+                    a href=".." { "Go here!" }
                 }
 
                 textarea name="global" placeholder="Global.json" {}
