@@ -27,10 +27,11 @@ pub async fn get() -> Markup {
                 h1 { "Arbeitszeitdokumentationsgenerator" }
 
                 p {
-                    "Want to use "
+                    "Du kannst auch "
+                    a href="tsg/" { "JSON eingeben" }
+                    ", das kompatibel mit dem "
                     a href="https://github.com/kit-sdq/TimeSheetGenerator" { "TimeSheetGenerator" }
-                    "-compatible JSON instead? "
-                    a href="tsg/" { "Go here!" }
+                    " ist."
                 }
 
                 div #header {

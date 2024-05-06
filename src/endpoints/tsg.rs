@@ -22,8 +22,9 @@ pub async fn get() -> Markup {
                 h1 { "Arbeitszeitdokumentationsgenerator" }
 
                 p {
-                    "Want to use a fancy-looking form instead? "
-                    a href=".." { "Go here!" }
+                    "Du kannst deine Daten auch in einem "
+                    a href=".." { "coolen Formular" }
+                    " eingeben."
                 }
 
                 textarea name="global" placeholder="Global.json" {}
