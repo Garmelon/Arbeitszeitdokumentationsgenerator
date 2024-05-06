@@ -24,11 +24,11 @@ function showError(msg) {
 }
 
 submit.addEventListener("click", async () => {
+  showStatus("Generiere...");
+
   const data = new FormData(form);
 
   try {
-    showStatus("Generiere...");
-
     const response = await fetch(".", {
       method: "post",
       body: new URLSearchParams(data),

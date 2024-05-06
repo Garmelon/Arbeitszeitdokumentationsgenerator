@@ -24,15 +24,29 @@ function showError(msg) {
 }
 
 submit.addEventListener("click", async () => {
+  showStatus("Generiere...");
+
   const data = new FormData(form);
-  const dataJson = JSON.stringify({
-    global: JSON.parse(data.get("global")),
-    month: JSON.parse(data.get("month")),
-  });
+
+  let global;
+  try {
+    global = JSON.parse(data.get("global"));
+  } catch (e) {
+    showError(`Generieren fehlgeschlagen:\nFailed to read Global.json:\n${e}`);
+    return;
+  }
+
+  let month;
+  try {
+    month = JSON.parse(data.get("month"));
+  } catch (e) {
+    showError(`Generieren fehlgeschlagen:\nFailed to read Month.json:\n${e}`);
+    return;
+  }
+
+  const dataJson = JSON.stringify({ global, month });
 
   try {
-    showStatus("Generiere...");
-
     const response = await fetch(".", {
       method: "post",
       headers: { "Content-Type": "application/json" },
