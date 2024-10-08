@@ -1,4 +1,4 @@
-# KIT Timesheets
+# Arbeitszeitdokumentationsgenerator
 
 This repository contains tools to make filling out KIT time sheets easier. It is
 inspired by the [SDQ TimeSheetGenerator][tsg] and a friend's very useful wrapper

@@ -90,6 +90,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbeitszeitdokumentationsgenerator"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "clap",
+ "comemo",
+ "fontdb",
+ "maud",
+ "serde",
+ "time",
+ "tokio",
+ "typst",
+ "typst-pdf",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1103,24 +1121,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef4fc70d0ab7e5b6bafa30216a6b48705ea964cdfc29c050f2412295eba58077"
 dependencies = [
  "mutate_once",
-]
-
-[[package]]
-name = "kit_timesheets"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-extra",
- "clap",
- "comemo",
- "fontdb",
- "maud",
- "serde",
- "time",
- "tokio",
- "typst",
- "typst-pdf",
 ]
 
 [[package]]

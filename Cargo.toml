@@ -1,5 +1,5 @@
 [package]
-name = "kit_timesheets"
+name = "arbeitszeitdokumentationsgenerator"
 version = "0.0.0"
 edition = "2021"
 
