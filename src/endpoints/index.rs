@@ -3,9 +3,9 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use axum_extra::extract::Form;
+use jiff::{ToSpan, Zoned};
 use maud::{html, Markup, PreEscaped};
 use serde::Deserialize;
-use time::{macros::format_description, OffsetDateTime};
 
 use crate::{
     endpoints::page,
@@ -13,9 +13,12 @@ use crate::{
 };
 
 pub async fn get() -> Markup {
-    let now = OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc());
-    let month = now.date().replace_day(1).unwrap().previous_day().unwrap();
-    let month = month.format(format_description!("[year]-[month]")).unwrap();
+    // We assume that people still want to fill out the previous month's time
+    // sheet during the first two weeks of the following month.
+    let month = Zoned::now()
+        .checked_sub(2.weeks())
+        .unwrap()
+        .strftime("%Y-%m");
 
     page(
         html! {
