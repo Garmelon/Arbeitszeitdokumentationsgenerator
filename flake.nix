@@ -11,7 +11,7 @@
     let
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
     in
-    rec {
+    {
       packages = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
@@ -37,7 +37,7 @@
             ];
 
             config = {
-              Entrypoint = [ "${kit-timesheets}/bin/kit_timesheets" ];
+              Entrypoint = [ "${kit-timesheets}/bin/arbeitszeitdokumentationsgenerator" ];
               WorkingDir = "/tmp";
               Env = [
                 # Fontconfig needs to be babysitted a bit in containers
