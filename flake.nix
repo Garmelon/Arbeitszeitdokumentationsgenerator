@@ -7,12 +7,18 @@
     };
   };
 
-  outputs = { self, nixpkgs, naersk }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      naersk,
+    }:
     let
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
     in
     {
-      packages = forAllSystems (system:
+      packages = forAllSystems (
+        system:
         let
           pkgs = import nixpkgs { inherit system; };
           naersk' = pkgs.callPackage naersk { };
@@ -21,9 +27,7 @@
         in
         rec {
           default = kit-timesheets;
-          kit-timesheets = naersk'.buildPackage {
-            root = ./.;
-          };
+          kit-timesheets = naersk'.buildPackage { root = ./.; };
           docker = pkgs.dockerTools.buildLayeredImage {
             name = "garmelon/kit-timesheets";
             tag = "latest";
@@ -50,5 +54,7 @@
           };
         }
       );
+
+      formatter = forAllSystems (system: (import nixpkgs { inherit system; }).nixfmt-rfc-style);
     };
 }
