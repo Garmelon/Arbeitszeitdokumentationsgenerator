@@ -27,14 +27,19 @@ pub async fn get() -> Markup {
         },
         html! {
             form #form {
-                h1 { "Arbeitszeitdokumentationsgenerator" }
+                h1 {
+                    "Arbeitszeitdokumentationsgenerator "
+                    a #source href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator" { "(source)" }
+                }
 
                 p {
                     "Du kannst auch "
                     a href="tsg/" { "JSON eingeben" }
                     ", das kompatibel mit dem "
                     a href="https://github.com/kit-sdq/TimeSheetGenerator" { "TimeSheetGenerator" }
-                    " ist."
+                    " ist, oder das dem Generator zugrunde liegende "
+                    a href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator/blob/master/kit_timesheet.md" { "Typst-Template" }
+                    " direkt benutzen."
                 }
 
                 div #header {

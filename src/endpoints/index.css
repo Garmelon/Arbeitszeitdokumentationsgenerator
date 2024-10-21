@@ -12,6 +12,9 @@ h1 {
   color: #009682;
   text-align: center;
 }
+#source {
+  font-size: small;
+}
 label {
   font-weight: bold;
 }

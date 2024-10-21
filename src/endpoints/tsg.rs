@@ -19,7 +19,10 @@ pub async fn get() -> Markup {
         },
         html! {
             form #form {
-                h1 { "Arbeitszeitdokumentationsgenerator" }
+                h1 {
+                    "Arbeitszeitdokumentationsgenerator "
+                    a #source href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator" { "(source)" }
+                }
 
                 p {
                     "Du kannst deine Daten auch in einem "
