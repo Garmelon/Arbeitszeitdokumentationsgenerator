@@ -410,11 +410,39 @@
   }
 
   for (day, info) in by_day.pairs() {
+    // According to the TimeSheetGenerator, working hours *must* not exceed 10
+    // hours per day:
     // https://github.com/kit-sdq/TimeSheetGenerator/blob/2e80a56483832fb96087b8145c6cf311ec417c60/src/main/java/checker/MiLoGChecker.java#L32
-    let max_duration = _parse_duration("10:00")
-    _assert_day(day, info.duration <= max_duration, "must not work more than 10 hours per day")
+    //
+    // According to "Merkblatt für Studentische/Wissenschaftliche Hilfskräfte"
+    // (Stand 2024-03-15), working hours *should* not exceed 8 hours per day,
+    // though the wording suggests it is allowed in theory.
+    //
+    // §3 of the Arbeitszeitgesetz (ArbZG) reads: "Die werktägliche Arbeitszeit
+    // der Arbeitnehmer darf acht Stunden nicht überschreiten. Sie kann auf bis
+    // zu zehn Stunden nur verlängert werden, wenn innerhalb von sechs
+    // Kalendermonaten oder innerhalb von 24 Wochen im Durchschnitt acht Stunden
+    // werktäglich nicht überschritten werden."
+    //
+    // Conclusion: A hard limit of 8 working hours a day will likely cause the
+    // least headaches in the long run.
+    let max_duration = _parse_duration("08:00")
+    _assert_day(day, info.duration <= max_duration, "must not work more than 8 hours per day (see comment in typst template for more details)")
 
+    // The TimeSheetGenerator requires 30 minutes rest after more than 6 hours
+    // of work, and 45 minutes rest after more than 9 hours of work:
     // https://github.com/kit-sdq/TimeSheetGenerator/blob/2e80a56483832fb96087b8145c6cf311ec417c60/src/main/java/checker/MiLoGChecker.java#L35
+    //
+    // §4 of the Arbeitszeitgesetz (ArbZG) reads: "Die Arbeit ist durch im
+    // voraus feststehende Ruhepausen von mindestens 30 Minuten bei einer
+    // Arbeitszeit von mehr als sechs bis zu neun Stunden und 45 Minuten bei
+    // einer Arbeitszeit von mehr als neun Stunden insgesamt zu unterbrechen.
+    // [...]"
+    //
+    // Since we already have a hard limit of 8 working hours a day, only the 30
+    // minute case will ever happen. However, the 45 minute case is kept for
+    // completeness. This should prevent correctness bugs if the working hour
+    // limit is ever increased again.
     if info.duration > _parse_duration("09:00") {
       _assert_day(day,
         info.rest >= _parse_duration("00:45"),
