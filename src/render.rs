@@ -1,15 +1,14 @@
 use std::{fs, path::PathBuf, sync::OnceLock};
 
-use comemo::Prehashed;
 use typst::{
     diag::{FileError, FileResult, SourceResult},
-    eval::Tracer,
-    foundations::{Bytes, Datetime, Smart},
-    model::Document,
+    foundations::{Bytes, Datetime},
     syntax::{FileId, Source},
     text::{Font, FontBook, FontInfo},
+    utils::LazyHash,
     Library, World,
 };
+use typst_pdf::PdfOptions;
 
 const LOGO: &str = include_str!("../kit_logo.svg");
 const LOGO_NAME: &str = "kit_logo.svg";
@@ -202,8 +201,8 @@ fn load_system_fonts() -> (FontBook, Vec<FontSlot>) {
 }
 
 struct DummyWorld {
-    library: Prehashed<Library>,
-    book: Prehashed<FontBook>,
+    library: LazyHash<Library>,
+    book: LazyHash<FontBook>,
     main: Source,
     fonts: Vec<FontSlot>,
 }
@@ -212,8 +211,8 @@ impl DummyWorld {
     fn new(main: String) -> Self {
         let (book, fonts) = load_system_fonts();
         Self {
-            library: Prehashed::new(Library::builder().build()),
-            book: Prehashed::new(book),
+            library: LazyHash::new(Library::builder().build()),
+            book: LazyHash::new(book),
             main: Source::detached(main),
             fonts,
         }
@@ -221,19 +220,23 @@ impl DummyWorld {
 }
 
 impl World for DummyWorld {
-    fn library(&self) -> &Prehashed<Library> {
+    fn library(&self) -> &LazyHash<Library> {
         &self.library
     }
 
-    fn book(&self) -> &Prehashed<FontBook> {
+    fn book(&self) -> &LazyHash<FontBook> {
         &self.book
     }
 
-    fn main(&self) -> Source {
-        self.main.clone()
+    fn main(&self) -> FileId {
+        self.main.id()
     }
 
     fn source(&self, id: FileId) -> FileResult<Source> {
+        if id == self.main.id() {
+            return Ok(self.main.clone());
+        }
+
         let path = id.vpath().as_rootless_path();
         match path.to_string_lossy().as_ref() {
             TEMPLATE_NAME => Ok(Source::new(id, TEMPLATE.to_string())),
@@ -258,15 +261,13 @@ impl World for DummyWorld {
     }
 }
 
-fn compile_timesheet(ts: Timesheet) -> SourceResult<Document> {
+fn render_pdf(ts: Timesheet) -> SourceResult<Vec<u8>> {
     let world = DummyWorld::new(fmt_timesheet(ts));
-    let mut tracer = Tracer::new();
-    typst::compile(&world, &mut tracer)
+    let document = typst::compile(&world).output?;
+    let options = PdfOptions::default();
+    typst_pdf::pdf(&document, &options)
 }
 
 pub fn render(ts: Timesheet) -> Result<Vec<u8>, Vec<String>> {
-    let document = compile_timesheet(ts)
-        .map_err(|es| es.iter().map(|e| e.message.to_string()).collect::<Vec<_>>())?;
-
-    Ok(typst_pdf::pdf(&document, Smart::Auto, None))
+    render_pdf(ts).map_err(|es| es.iter().map(|e| e.message.to_string()).collect::<Vec<_>>())
 }
