@@ -507,6 +507,7 @@
   monthly_hours: 40,
   hourly_wage: [14.09],
   validate: true,
+  sort: true,
   carry_prev_month: "00:00",
   year: 2024,
   month: 1,
@@ -520,6 +521,10 @@
   carry_prev_month = _parse_duration(carry_prev_month)
   entries = entries.pos()
   assert(entries.len() <= _kit_rows, message: "at most " + str(_kit_rows) + " entries allowed")
+
+  if sort {
+    entries = entries.sorted(key: entry => (entry.day, entry.end, entry.start))
+  }
 
   let monthly = monthly_hours * 60
   let holiday = entries.filter(e => e.note == notes.Urlaub).map(e => e.duration).sum(default: 0)

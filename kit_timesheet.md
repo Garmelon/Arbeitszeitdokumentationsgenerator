@@ -121,6 +121,9 @@ Named arguments:
   Whether the template should try to validate the data you entered (check if
   values look wrong, if you worked on a holiday, ...). If you turn this off, you
   can do funky things like work a negative amount of time or on Sundays.
+- `sort` (default: `true`):
+  Whether the template should sort sort all entries in chronological order. If
+  you turn this off, entries are kept in their original order.
 - `year`:
   The year this time sheet is being generated for.
 - `month`:
