@@ -27,9 +27,7 @@ label {
   grid-column: 2;
   text-align: center;
 }
-#i-name,
-#i-department,
-#mhhr {
+.twocol {
   grid-column: 2 / 4;
 }
 #gfub {
@@ -56,6 +54,12 @@ label {
   display: flex;
   justify-content: end;
   align-items: baseline;
+}
+#check {
+  grid-column: 2;
+}
+#validate {
+  text-align: right;
 }
 #table {
   display: grid;

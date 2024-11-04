@@ -30,11 +30,27 @@ pub async fn get() -> Markup {
                     " eingeben."
                 }
 
-                label for="i-global" { "Global.json" }
-                textarea #i-global name="global" placeholder="{}" {}
+                p {
+                    label for="i-global" { "Global.json" }
+                    textarea #i-global name="global" placeholder="{}" {}
+                }
 
-                label for="i-month" { "Month.json" }
-                textarea #i-month name="month" placeholder="{}" {}
+                p {
+                    label for="i-month" { "Month.json" }
+                    textarea #i-month name="month" placeholder="{}" {}
+                }
+
+                p {
+                    label title="Die Einträge werden chronologisch sortiert, anstatt dass ihre Reihenfolge beibehalten wird." {
+                        input name="sort" type="checkbox" checked {}
+                        " Einträge sortieren"
+                    }
+
+                    label title="Die Einträge werden auf Konsistenz und Korrektheit überprüft, bevor das Dokument generiert wird." {
+                        input name="validate" type="checkbox" checked {}
+                        " Einträge validieren"
+                    }
+                }
 
                 button #submit type="button" { "Arbeitszeitdokumentation generieren" }
 
@@ -82,6 +98,8 @@ pub struct MonthJson {
 pub struct PostJson {
     global: GlobalJson,
     month: MonthJson,
+    sort: bool,
+    validate: bool,
 }
 
 fn error_response<S: ToString>(msg: S) -> Response {
@@ -149,7 +167,8 @@ pub async fn post(json: Json<PostJson>) -> Response {
         working_area,
         monthly_hours,
         hourly_wage: json.global.wage.to_string(),
-        validate: true,
+        validate: json.validate,
+        sort: json.sort,
         carry_prev_month: json.month.pred_transfer,
         year: json.month.year,
         month: json.month.month,

@@ -44,7 +44,14 @@ submit.addEventListener("click", async () => {
     return;
   }
 
-  const dataJson = JSON.stringify({ global, month });
+  let sort = data.get("sort") !== null;
+  let validate = data.get("validate") !== null;
+
+  console.log("data", data)
+  console.log("sort", sort)
+  console.log("validate", validate)
+
+  const dataJson = JSON.stringify({ global, month, sort, validate });
 
   try {
     const response = await fetch(".", {

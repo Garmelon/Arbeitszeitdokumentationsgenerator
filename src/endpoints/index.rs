@@ -47,7 +47,7 @@ pub async fn get() -> Markup {
                     input #i-month name="month" type="month" placeholder=(month) value=(month) {}
 
                     label #l-name for="i-name" { "Name, Vorname des/r Beschäftigten:" }
-                    input #i-name name="name" type="text" placeholder="McStudentface, Student" {}
+                    input #i-name .twocol name="name" type="text" placeholder="McStudentface, Student" {}
 
                     label #l-staffid for="i-staffid" { "Personalnummer:" }
                     input #i-staffid name="staff_id" type="text" placeholder="1337420" {}
@@ -63,10 +63,10 @@ pub async fn get() -> Markup {
                     }
 
                     label #l-department for="i-department" title="Organisationseinheit" { "OE:" }
-                    input #i-department name="department" type="text" placeholder="Institut für Informatik" value="Institut für Informatik" {}
+                    input #i-department .twocol name="department" type="text" placeholder="Institut für Informatik" value="Institut für Informatik" {}
 
                     label #l-monthlyhours for="i-monthlyhours" { "Vertraglich vereinbarte Arbeitszeit:" }
-                    div #mhhr {
+                    div #mhhr .twocol {
                         span {
                             input #i-monthlyhours name="monthly_hours" type="number" value="40" min="0" {}
                             " Std."
@@ -78,11 +78,21 @@ pub async fn get() -> Markup {
                         }
                     }
 
-                    div #carry {
+                    div #carry .twocol {
                         span {
                             label #l-carry for="i-carry" { "Übertrag vom Vormonat: " }
                             input #i-carry .i-dur name="carry_prev_month" type="text" placeholder="00:00" {}
                         }
+                    }
+
+                    label #check title="Die Tabelleneinträge werden chronologisch sortiert, anstatt dass ihre Reihenfolge beibehalten wird." {
+                        "Einträge sortieren "
+                        input name="sort" type="checkbox" value="true" checked {}
+                    }
+
+                    label #validate title="Die Tabelleneinträge werden auf Konsistenz und Korrektheit überprüft, bevor das Dokument generiert wird." {
+                        "Einträge validieren "
+                        input name="validate" type="checkbox" value="true" checked {}
                     }
                 }
 
@@ -133,6 +143,10 @@ pub struct PostForm {
     monthly_hours: u32,
     hourly_wage: String,
     carry_prev_month: String,
+    #[serde(default)]
+    sort: bool,
+    #[serde(default)]
+    validate: bool,
     task: Vec<String>,
     day: Vec<Option<u32>>,
     start: Vec<String>,
@@ -229,7 +243,8 @@ pub async fn post(form: Form<PostForm>) -> Response {
         working_area,
         monthly_hours: form.monthly_hours,
         hourly_wage: form.hourly_wage,
-        validate: true,
+        validate: form.validate,
+        sort: form.sort,
         carry_prev_month,
         year,
         month,
