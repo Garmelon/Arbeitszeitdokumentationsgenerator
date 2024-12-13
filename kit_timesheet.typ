@@ -268,74 +268,6 @@
   _pad_int(m, char: "0", width: 2)
 }
 
-#let _divides(divident, divisor) = calc.rem(divident, divisor) == 0
-#let _is_leap_year(year) = _divides(year, 4) and not (_divides(year, 100) and not _divides(year, 400))
-
-#let _month_length(year, month) = {
-  assert(1 <= month and month <= 12)
-  if (1, 3, 5, 7, 8, 10, 12).contains(month) {
-    31
-  } else if (4, 6, 9, 11).contains(month) {
-    30
-  } else if _is_leap_year(year) {
-    29
-  } else {
-    28
-  }
-}
-
-#let _next_day(date) = {
-  let year = date.year()
-  let month = date.month()
-  let day = date.day()
-
-  if day < _month_length(year, month) {
-    day += 1
-  } else if month < 12 {
-    month += 1
-    day = 1
-  } else {
-    year += 1
-    month = 1
-    day = 1
-  }
-
-  datetime(year: year, month: month, day: day)
-}
-
-#let _prev_day(date) = {
-  let year = date.year()
-  let month = date.month()
-  let day = date.day()
-
-  if day > 1 {
-    day -= 1
-  } else if month > 1 {
-    month -= 1
-    day = _month_length(year, month)
-  } else {
-    year -= 1
-    month = 12
-    day = 31
-  }
-
-  datetime(year: year, month: month, day: day)
-}
-
-#let _move_by(date, days) = {
-  while days > 0 {
-    date = _next_day(date)
-    days -= 1
-  }
-
-  while days < 0 {
-    date = _prev_day(date)
-    days += 1
-  }
-
-  date
-}
-
 #let _computus(year) = {
   // https://en.wikipedia.org/wiki/Date_of_Easter#Anonymous_Gregorian_algorithm
   let Y = year
@@ -368,12 +300,12 @@
   (
     (name: "Neujahr", date: datetime(year: year, month: 1, day: 1)),
     (name: "Heilige Drei Könige", date: datetime(year: year, month: 1, day: 6)),
-    (name: "Karfreitag", date: _move_by(easter, -2)),
-    (name: "Ostermontag", date: _move_by(easter, 1)),
+    (name: "Karfreitag", date: easter - duration(days: 2)),
+    (name: "Ostermontag", date: easter + duration(days: 1)),
     (name: "Tag der Arbeit", date: datetime(year: year, month: 5, day: 1)),
-    (name: "Christi Himmelfahrt", date: _move_by(easter, 39)),
-    (name: "Pfingstmontag", date: _move_by(easter, 50)),
-    (name: "Fronleichnam", date: _move_by(easter, 60)),
+    (name: "Christi Himmelfahrt", date: easter + duration(days: 39)),
+    (name: "Pfingstmontag", date: easter + duration(days: 50)),
+    (name: "Fronleichnam", date: easter + duration(days: 60)),
     (name: "Tag der Deutschen Einheit", date: datetime(year: year, month: 10, day: 3)),
     (name: "Allerheiligen", date: datetime(year: year, month: 11, day: 1)),
     (name: "Erster Weihnachtsfeiertag", date: datetime(year: year, month: 12, day: 25)),
