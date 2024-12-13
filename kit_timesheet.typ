@@ -240,32 +240,28 @@
 // Util //
 //////////
 
-#let _pad_int(n, char: "0", width: 2) = {
-  let s = str(n)
-  for _ in array.range(width - s.clusters().len()) { char }
-  s
-}
-
 #let _parse_duration(s) = {
   let matched = s.match(regex("^(-?)([0-9]+):([0-5][0-9])$"))
   assert(matched != none, message: "invalid duration or time: " + s)
   let groups = matched.captures
   let sign = if groups.at(0) == "-" { -1 } else { 1 }
-  let h = int(groups.at(1))
-  let m = int(groups.at(2))
-  sign * (h * 60 + m)
+  let hours = int(groups.at(1))
+  let minutes = int(groups.at(2))
+  sign * duration(hours: hours, minutes: minutes)
 }
 
-#let _fmt_duration(mins) = {
-  if mins < 0 {
+#let _fmt_duration(dur) = {
+  if dur.seconds() < 0 {
     "-"
-    mins = -mins
+    dur = -dur
   }
-  let h = int(mins / 60)
-  let m = mins - h * 60
-  _pad_int(h, char: "0", width: 2)
+  let hours = calc.floor(dur.hours())
+  let minutes = calc.rem(calc.floor(dur.minutes()), 60)
+  if hours < 10 { "0" }
+  str(hours)
   ":"
-  _pad_int(m, char: "0", width: 2)
+  if minutes < 10 { "0" }
+  str(minutes)
 }
 
 #let _computus(year) = {
@@ -329,7 +325,7 @@
 
     // I think the previous two checks should make it impossible for this assert
     // to fail, but just to be careful...
-    _assert_entry(row, e, e.duration >= 0, "duration must be positive")
+    _assert_entry(row, e, e.duration.seconds() >= 0, "duration must be positive")
 
     // Date checks
     let date = datetime(year: year, month: month, day: e.day)
@@ -357,7 +353,7 @@
   let by_day = (:)
   for entry in entries {
     let key = str(entry.day)
-    let info = by_day.at(key, default: (duration: 0, rest: 0))
+    let info = by_day.at(key, default: (duration: duration(), rest: duration()))
     info.duration += entry.duration
     info.rest += entry.rest
     by_day.insert(key, info)
@@ -486,9 +482,9 @@
     entries = entries.sorted(key: entry => (entry.day, entry.end, entry.start))
   }
 
-  let monthly = monthly_hours * 60
+  let monthly = duration(hours: monthly_hours)
   let holiday = entries.filter(e => e.note == notes.Urlaub).map(e => e.duration).sum(default: 0)
-  let total = entries.map(e => e.duration).sum(default: 0)
+  let total = entries.map(e => e.duration).sum(default: duration())
   let carry_next_month = carry_prev_month + total - monthly
 
   if validate {
