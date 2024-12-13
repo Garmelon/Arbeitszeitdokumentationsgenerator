@@ -4,14 +4,14 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.91"
-axum = "0.7.7"
-axum-extra = { version = "0.9.4", features = ["form"] }
-clap = { version = "4.5.20", features = ["derive", "deprecated"] }
+anyhow = "1.0.94"
+axum = "0.7.9"
+axum-extra = { version = "0.9.6", features = ["form"] }
+clap = { version = "4.5.23", features = ["derive", "deprecated"] }
 fontdb = "0.23.0"
-jiff = "0.1.13"
+jiff = "0.1.15"
 maud = { version = "0.26.0", features = ["axum"] }
-serde = { version = "1.0.213", features = ["derive"] }
-tokio = { version = "1.41.0", features = ["full"] }
+serde = { version = "1.0.216", features = ["derive"] }
+tokio = { version = "1.42.0", features = ["full"] }
 typst = "0.12.0"
 typst-pdf = "0.12.0"
