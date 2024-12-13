@@ -1,3 +1,8 @@
+#let _compose(..args) = {
+  assert(args.pos().len() > 0, message: "args required")
+  args.pos().slice(0, -1).rev().fold(args.pos().at(-1), (x, f) => f(x))
+}
+
 /////////////
 // "Enums" //
 /////////////
@@ -20,15 +25,11 @@
   set par(leading: 5pt)
 
   // Weird vertical text in the bottom left
-  place(
-    bottom + left,
-    dx: -6mm,
-    dy: -1mm,
-    rotate(
-      -90deg,
-      origin: bottom + left,
-      text(size: 6pt, tracking: 3.1pt, "K_PSE_PB_AZDoku_01_04-20"),
-    ),
+  _compose(
+    place.with(bottom + left, dx: -6mm, dy: -1mm),
+    rotate.with(-90deg, origin: bottom + left),
+    text.with(size: 6pt, tracking: 3.1pt),
+    "K_PSE_PB_AZDoku_01_04-20",
   )
 
   // Main box
@@ -40,31 +41,23 @@
     inset: 0mm,
   )[
     // Logo
-    #place(
-      top + left,
-      dx: 9.5mm,
-      dy: 3.5mm,
-      image("kit_logo.svg", width: 29mm),
+    #_compose(
+      place.with(top + left, dx: 9.5mm, dy: 3.5mm),
+      image(width: 29mm, "kit_logo.svg"),
     )
 
     // Heading
-    #place(
-      top + left,
-      dx: 78mm,
-      dy: 9mm,
-      text(
-        weight: "bold",
-        size: 14pt,
-        fill: _kit_green,
-      )[Arbeitszeitdokumentation],
+    #_compose(
+      place.with(top + left, dx: 78mm, dy: 9mm),
+      text.with(weight: "bold", size: 14pt, fill: _kit_green),
+      [Arbeitszeitdokumentation],
     )
 
     // Page number
-    #place(
-      bottom + right,
-      dx: -15mm,
-      dy: -1.5mm,
-      text(size: 9pt)[Seite 1 von 1],
+    #_compose(
+      place.with(bottom + right, dx: -15mm, dy: -1.5mm),
+      text.with(size: 9pt),
+      [Seite 1 von 1],
     )
 
     // Main content
@@ -112,10 +105,10 @@
       [],
       align(right)[
         *Monat / Jahr:* #h(6mm)
-        #_underlined(
-          align(center)[
-            #box(width: 21mm)[#month] / #box(width: 21mm)[#year]
-          ],
+        #_compose(
+          _underlined,
+          align.with(center),
+          [#box(width: 21mm)[#month] / #box(width: 21mm)[#year]],
         )
       ],
 
@@ -135,22 +128,18 @@
       [*OE:*], _underlined(box(width: 100%)[#department]),
       [*Vertraglich vereinbarte Arbeitszeit:*],
       [
-        #_underlined(
-          align(center)[
-            #h(4mm)
-            #box(width: 10mm)[#monthly_hours]
-            Std.
-            #h(4mm)
-          ],
+        #_compose(
+          _underlined,
+          align.with(center),
+          [#h(4mm) #box(width: 10mm)[#monthly_hours] Std. #h(4mm)],
         )
         #h(1fr)
         *Stundensatz:*
         #h(4mm)
-        #_underlined(
-          align(center)[
-            #box(width: 18mm)[#hourly_wage]
-            *€*
-          ],
+        #_compose(
+          _underlined,
+          align.with(center),
+          [#box(width: 18mm)[#hourly_wage] *€*],
         )
       ],
     ),
