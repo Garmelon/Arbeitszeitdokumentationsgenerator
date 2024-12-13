@@ -20,12 +20,15 @@
   set par(leading: 5pt)
 
   // Weird vertical text in the bottom left
-  place(bottom + left, dx: -6mm, dy: -1mm,
-    rotate(-90deg, origin: bottom + left,
-      text(size: 6pt, tracking: 3.1pt,
-        "K_PSE_PB_AZDoku_01_04-20"
-      )
-    )
+  place(
+    bottom + left,
+    dx: -6mm,
+    dy: -1mm,
+    rotate(
+      -90deg,
+      origin: bottom + left,
+      text(size: 6pt, tracking: 3.1pt, "K_PSE_PB_AZDoku_01_04-20"),
+    ),
   )
 
   // Main box
@@ -34,23 +37,34 @@
     height: 100%,
     stroke: _kit_stroke,
     radius: (top-right: 4.5mm, bottom-left: 4.5mm),
-    inset: 0mm
+    inset: 0mm,
   )[
     // Logo
-    #place(top + left, dx: 9.5mm, dy: 3.5mm,
-      image("kit_logo.svg", width: 29mm)
+    #place(
+      top + left,
+      dx: 9.5mm,
+      dy: 3.5mm,
+      image("kit_logo.svg", width: 29mm),
     )
 
     // Heading
-    #place(top + left, dx: 78mm, dy: 9mm,
-      text(weight: "bold", size: 14pt, fill: _kit_green,
-        [Arbeitszeitdokumentation]
-      )
+    #place(
+      top + left,
+      dx: 78mm,
+      dy: 9mm,
+      text(
+        weight: "bold",
+        size: 14pt,
+        fill: _kit_green,
+      )[Arbeitszeitdokumentation],
     )
 
     // Page number
-    #place(bottom + right, dx: -15mm, dy: -1.5mm,
-      text(size: 9pt, [Seite 1 von 1])
+    #place(
+      bottom + right,
+      dx: -15mm,
+      dy: -1.5mm,
+      text(size: 9pt)[Seite 1 von 1],
     )
 
     // Main content
@@ -58,7 +72,7 @@
       inset: (top: 24.5mm, left: 7.5mm, right: 13mm),
       width: 100%,
       height: 100%,
-      body
+      body,
     )
   ]
 }
@@ -75,7 +89,7 @@
   width: 3.5mm,
   outset: (y: 0.4mm),
   stroke: _kit_stroke,
-  align(center + horizon, if checked { "X" } else { " " })
+  align(center + horizon, if checked { "X" } else { " " }),
 )
 
 #let _header(
@@ -87,56 +101,61 @@
   department: " ",
   monthly_hours: " ",
   hourly_wage: " ",
-) = [
-  #set text(size: 11pt)
-  #pad(left: 2.5mm, grid(
-    columns: (1fr, 92mm),
-    rows: 6mm,
+) = {
+  // "OE" means "Institut / Organisationseinheit"
+  set text(size: 11pt)
+  pad(
+    left: 2.5mm,
+    grid(
+      columns: (1fr, 92mm),
+      rows: 6mm,
+      [],
+      align(right)[
+        *Monat / Jahr:* #h(6mm)
+        #_underlined(
+          align(center)[
+            #box(width: 21mm)[#month] / #box(width: 21mm)[#year]
+          ],
+        )
+      ],
 
-    [],
-    align(right)[
-      *Monat / Jahr:* #h(6mm)
-      #_underlined(align(center)[
-        #box(width: 21mm)[#month] / #box(width: 21mm)[#year]
-      ])
-    ],
+      [*Name, Vorname des/r Beschäftigten:*], _underlined(box(width: 100%, name)),
+      [*Personalnummer:*],
+      _underlined[
+        #box(width: 1fr)[#staff_id]
+        #h(8mm)
+        *GF:* #h(1mm)
+        #_checkbox(working_area == areas.Großforschung)
+        #h(8mm)
+        *UB:* #h(1mm)
+        #_checkbox(working_area == areas.Unibereich)
+        #h(8mm)
+      ],
 
-    [*Name, Vorname des/r Beschäftigten:*],
-    _underlined(box(width: 100%, name)),
-
-    [*Personalnummer:*],
-    _underlined[
-      #box(width: 1fr)[#staff_id]
-      #h(8mm)
-      *GF:* #h(1mm)
-      #_checkbox(working_area == areas.Großforschung)
-      #h(8mm)
-      *UB:* #h(1mm)
-      #_checkbox(working_area == areas.Unibereich)
-      #h(8mm)
-    ],
-
-    [*OE:*], // Institut / Organisationseinheit
-    _underlined(box(width: 100%)[#department]),
-
-    [*Vertraglich vereinbarte Arbeitszeit:*],
-    [
-      #_underlined(align(center)[
+      [*OE:*], _underlined(box(width: 100%)[#department]),
+      [*Vertraglich vereinbarte Arbeitszeit:*],
+      [
+        #_underlined(
+          align(center)[
+            #h(4mm)
+            #box(width: 10mm)[#monthly_hours]
+            Std.
+            #h(4mm)
+          ],
+        )
+        #h(1fr)
+        *Stundensatz:*
         #h(4mm)
-        #box(width: 10mm)[#monthly_hours]
-        Std.
-        #h(4mm)
-      ])
-      #h(1fr)
-      *Stundensatz:*
-      #h(4mm)
-      #_underlined(align(center)[
-        #box(width: 18mm)[#hourly_wage]
-        *€*
-      ])
-    ]
-  ))
-]
+        #_underlined(
+          align(center)[
+            #box(width: 18mm)[#hourly_wage]
+            *€*
+          ],
+        )
+      ],
+    ),
+  )
+}
 
 #let _log(..entries) = {
   set text(size: 10pt)
@@ -174,32 +193,41 @@
   carry_next_month: [],
 ) = {
   set text(size: 10pt)
-  align(right, table(
-    columns: (54mm, 23.3mm),
-    rows: 5.05mm,
-    align: center + horizon,
-    stroke: _kit_stroke,
-    inset: 1mm,
-    [*Urlaub anteilig:*], [#holiday],
-    [*Summe:*], [#total],
-    [*monatliche Soll-Arbeitszeit:*], [#monthly_hours],
-    [*Übertrag vom Vormonat:*], [#carry_prev_month],
-    [*Übertrag in den Folgemonat:*], [#carry_next_month],
-  ))
+  align(
+    right,
+    table(
+      columns: (54mm, 23.3mm),
+      rows: 5.05mm,
+      align: center + horizon,
+      stroke: _kit_stroke,
+      inset: 1mm,
+      [*Urlaub anteilig:*], [#holiday],
+      [*Summe:*], [#total],
+      [*monatliche Soll-Arbeitszeit:*], [#monthly_hours],
+      [*Übertrag vom Vormonat:*], [#carry_prev_month],
+      [*Übertrag in den Folgemonat:*], [#carry_next_month],
+    ),
+  )
 }
 
 #let _footer() = pad(left: 2.5mm)[
   #v(3.5mm)
+
+  #let signature = pad(
+    left: -2.5mm,
+    line(
+      length: 100%,
+      stroke: stroke(thickness: _kit_stroke, dash: "densely-dotted"),
+    ),
+  )
+
   #grid(
     columns: (1fr, 77.5mm),
     column-gutter: 6.5mm,
     row-gutter: (12mm, 3mm),
-    [Ich bestätige die Richtigkeit der Angaben:],
-    [Geprüft:],
-    pad(left: -2.5mm, line(length: 100%, stroke: stroke(thickness: _kit_stroke, dash: "densely-dotted"))),
-    pad(left: -2.5mm, line(length: 100%, stroke: stroke(thickness: _kit_stroke, dash: "densely-dotted"))),
-    [Datum, Unterschrift Beschäftigte/r],
-    [Datum, Unterschrift Dienstvorgesetzte/r],
+    [Ich bestätige die Richtigkeit der Angaben:], [Geprüft:],
+    signature, signature,
+    [Datum, Unterschrift Beschäftigte/r], [Datum, Unterschrift Dienstvorgesetzte/r],
   )
 
 
@@ -256,10 +284,15 @@
 
 #let _month_length(year, month) = {
   assert(1 <= month and month <= 12)
-  if (1, 3, 5, 7, 8, 10, 12).contains(month) { 31 }
-  else if (4, 6, 9, 11).contains(month) { 30 }
-  else if _is_leap_year(year) { 29 }
-  else { 28 }
+  if (1, 3, 5, 7, 8, 10, 12).contains(month) {
+    31
+  } else if (4, 6, 9, 11).contains(month) {
+    30
+  } else if _is_leap_year(year) {
+    29
+  } else {
+    28
+  }
 }
 
 #let _next_day(date) = {
@@ -324,17 +357,17 @@
   let e = calc.rem(b, 4)
   // let f = calc.quo(b + 8, 25)
   // let g = calc.quo(b - f + 1, 3)
-  let g = calc.quo(8*b + 13, 25)
-  let h = calc.rem(19*a + b - d - g + 15, 30)
+  let g = calc.quo(8 * b + 13, 25)
+  let h = calc.rem(19 * a + b - d - g + 15, 30)
   let i = calc.quo(c, 4)
   let k = calc.rem(c, 4)
-  let l = calc.rem(32 + 2*e + 2*i - h - k, 7)
-  // let m = calc.quo(a + 11*h + 22*l, 451)
-  let m = calc.quo(a + 11*h + 19*l, 433)
-  // let n = calc.quo(h + l - 7*m + 114, 31)
-  let n = calc.quo(h + l - 7*m + 90, 25)
-  // let o = calc.rem(h + l - 7*m + 114, 31)
-  let p = calc.rem(h + l - 7*m + 33*n + 19, 32)
+  let l = calc.rem(32 + 2 * e + 2 * i - h - k, 7)
+  // let m = calc.quo(a + 11 * h + 22 * l, 451)
+  let m = calc.quo(a + 11 * h + 19 * l, 433)
+  // let n = calc.quo(h + l - 7 * m + 114, 31)
+  let n = calc.quo(h + l - 7 * m + 90, 25)
+  // let o = calc.rem(h + l - 7 * m + 114, 31)
+  let p = calc.rem(h + l - 7 * m + 33 * n + 19, 32)
   let month = n
   // let day = o + 1
   let day = p
@@ -427,7 +460,11 @@
     // Conclusion: A hard limit of 8 working hours a day will likely cause the
     // least headaches in the long run.
     let max_duration = _parse_duration("08:00")
-    _assert_day(day, info.duration <= max_duration, "must not work more than 8 hours per day (see comment in typst template for more details)")
+    _assert_day(
+      day,
+      info.duration <= max_duration,
+      "must not work more than 8 hours per day (see comment in typst template for more details)",
+    )
 
     // The TimeSheetGenerator requires 30 minutes rest after more than 6 hours
     // of work, and 45 minutes rest after more than 9 hours of work:
@@ -444,12 +481,14 @@
     // completeness. This should prevent correctness bugs if the working hour
     // limit is ever increased again.
     if info.duration > _parse_duration("09:00") {
-      _assert_day(day,
+      _assert_day(
+        day,
         info.rest >= _parse_duration("00:45"),
         "at least 45 minutes rest required after more than 9 hours of work",
       )
     } else if info.duration > _parse_duration("06:00") {
-      _assert_day(day,
+      _assert_day(
+        day,
         info.rest >= _parse_duration("00:30"),
         "30 minutes rest required after more than 6 hours of work",
       )
@@ -545,7 +584,10 @@
     _fmt_duration(e.rest),
     {
       _fmt_duration(e.duration)
-      if e.note != none { " "; e.note }
+      if e.note != none {
+        " "
+        e.note
+      }
     },
   ))
 
