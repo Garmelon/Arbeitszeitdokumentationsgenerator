@@ -1,10 +1,12 @@
+use std::iter;
+
 use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Response},
 };
 use axum_extra::extract::Form;
+use el::{html::*, Document};
 use jiff::{ToSpan, Zoned};
-use maud::{html, Markup, PreEscaped};
 use serde::Deserialize;
 
 use crate::{
@@ -12,7 +14,12 @@ use crate::{
     render::{self, Entry, Note, Timesheet, WorkingArea},
 };
 
-pub async fn get() -> Markup {
+const LINK_SOURCE: &str = "https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator";
+const LINK_TSG: &str = "https://github.com/kit-sdq/TimeSheetGenerator";
+const LINK_TEMPLATE: &str =
+    "https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator/blob/master/kit_timesheet.md";
+
+pub async fn get() -> Document {
     // We assume that people still want to fill out the previous month's time
     // sheet during the first two weeks of the following month.
     let month = Zoned::now()
@@ -20,117 +27,252 @@ pub async fn get() -> Markup {
         .unwrap()
         .strftime("%Y-%m");
 
-    page(
-        html! {
-            style { (PreEscaped(include_str!("index.css"))) }
-            script type="module" { (PreEscaped(include_str!("index.js"))) }
-        },
-        html! {
-            form #form {
-                h1 {
-                    "Arbeitszeitdokumentationsgenerator "
-                    a #source href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator" { "(source)" }
-                }
+    let head = (
+        style(include_str!("index.css")),
+        script((attr::TypeScript::Module, include_str!("index.js"))),
+    );
 
-                p {
-                    "Du kannst auch "
-                    a href="tsg/" { "JSON eingeben" }
-                    ", das kompatibel mit dem "
-                    a href="https://github.com/kit-sdq/TimeSheetGenerator" { "TimeSheetGenerator" }
-                    " ist, oder das dem Generator zugrunde liegende "
-                    a href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator/blob/master/kit_timesheet.md" { "Typst-Template" }
-                    " direkt benutzen."
-                }
+    let body = form((
+        attr::id("form"),
+        h1((
+            "Arbeitszeitdokumentationsgenerator ",
+            a((attr::id("source"), attr::href(LINK_SOURCE), "(source)")),
+        )),
+        p((
+            "Du kannst auch ",
+            a((attr::href("tsg/"), "JSON eingeben")),
+            ", das kompatibel mit dem ",
+            a((attr::href(LINK_TSG), "TimeSheetGenerator")),
+            " ist, oder das dem Generator zugrunde liegende ",
+            a((attr::href(LINK_TEMPLATE), "Typst-Template")),
+            " direkt benutzen.",
+        )),
+        div((
+            attr::id("header"),
+            label((attr::id("l-month"), attr::r#for("i-month"), "Monat / Jahr:")),
+            input((
+                attr::id("i-month"),
+                attr::name("month"),
+                attr::TypeInput::Month,
+                attr::placeholder(&month),
+                attr::value(&month),
+            )),
+            label((
+                attr::id("l-name"),
+                attr::r#for("i-name"),
+                "Name, Vorname des/r Beschäftigten:",
+            )),
+            input((
+                attr::id("i-name"),
+                attr::class("twocol"),
+                attr::name("name"),
+                attr::TypeInput::Text,
+                attr::placeholder("McStudentface, Student"),
+            )),
+            label((
+                attr::id("l-staffid"),
+                attr::r#for("i-staffid"),
+                "Personalnummer:",
+            )),
+            input((
+                attr::id("i-staffid"),
+                attr::name("staff_id"),
+                attr::TypeInput::Text,
+                attr::placeholder("1337420"),
+            )),
+            div((
+                attr::id("gfub"),
+                label((
+                    attr::id("l-gf"),
+                    attr::title("Großforschung"),
+                    "GF: ",
+                    input((
+                        attr::id("i-gf"),
+                        attr::name("working_area"),
+                        attr::TypeInput::Radio,
+                        attr::value("GF"),
+                    )),
+                )),
+                label((
+                    attr::id("l-ub"),
+                    attr::title("Unibereich"),
+                    "UB: ",
+                    input((
+                        attr::id("i-ub"),
+                        attr::name("working_area"),
+                        attr::TypeInput::Radio,
+                        attr::value("UB"),
+                        attr::checked(),
+                    )),
+                )),
+            )),
+            label((
+                attr::id("l-department"),
+                attr::r#for("i-department"),
+                attr::title("Institut/Organisationseinheit"),
+                "OE:",
+            )),
+            input((
+                attr::id("i-department"),
+                attr::class("twocol"),
+                attr::name("department"),
+                attr::TypeInput::Text,
+                attr::placeholder("Institut für Informatik"),
+                attr::value("Institut für Informatik"),
+            )),
+            label((
+                attr::id("l-monthlyhours"),
+                attr::r#for("i-monthlyhours"),
+                "Vertraglich vereinbarte Arbeitszeit:",
+            )),
+            div((
+                attr::id("mhhr"),
+                attr::class("twocol"),
+                span((
+                    input((
+                        attr::id("i-monthlyhours"),
+                        attr::name("monthly_hours"),
+                        attr::TypeInput::Number,
+                        attr::value(40),
+                        attr::min(0),
+                    )),
+                    " Std.",
+                )),
+                span((
+                    label((
+                        attr::id("l-hourlywage"),
+                        attr::r#for("i-hourlywage"),
+                        "Stundensatz: ",
+                    )),
+                    input((
+                        attr::id("i-hourlywage"),
+                        attr::name("hourly_wage"),
+                        attr::TypeInput::Number,
+                        attr::step(0.01),
+                        attr::value(14.09),
+                    )),
+                    " €",
+                )),
+            )),
+            div((
+                attr::id("carry"),
+                attr::class("twocol"),
+                span((
+                    label((
+                        attr::id("l-carry"),
+                        attr::r#for("i-carry"),
+                        "Übertrag vom Vormonat: ",
+                    )),
+                    input((
+                        attr::id("i-carry"),
+                        attr::class("i-dur"),
+                        attr::name("carry_prev_month"),
+                        attr::TypeInput::Text,
+                        attr::placeholder("00:00"),
+                    )),
+                )),
+            )),
+            label((
+                attr::id("check"),
+                attr::title(concat!(
+                    "Die Tabelleneinträge werden chronologisch sortiert,",
+                    " anstatt dass ihre Reihenfolge beibehalten wird."
+                )),
+                "Einträge sortieren ",
+                input((
+                    attr::name("sort"),
+                    attr::TypeInput::Checkbox,
+                    attr::value(true),
+                    attr::checked(),
+                )),
+            )),
+            label((
+                attr::id("validate"),
+                attr::title(concat!(
+                    "Die Tabelleneinträge werden auf Konsistenz und Korrektheit überprüft,",
+                    " bevor das Dokument generiert wird."
+                )),
+                "Einträge validieren ",
+                input((
+                    attr::name("validate"),
+                    attr::TypeInput::Checkbox,
+                    attr::value(true),
+                    attr::checked(),
+                )),
+            )),
+        )),
+        div((
+            attr::id("table"),
+            div((
+                attr::id("task"),
+                "Tätigkeit",
+                br(()),
+                "(Stichwort, Projekt)",
+            )),
+            div("Tag"),
+            div("Beginn"),
+            div("Ende"),
+            div("Pause"),
+            div("Arbeitszeit"),
+            div(()),
+            div("(hh:mm)"),
+            div("(hh:mm)"),
+            div("(hh:mm)"),
+            div(()),
+            iter::repeat((
+                div(input((
+                    attr::class("i-task"),
+                    attr::name("task"),
+                    attr::TypeInput::Text,
+                ))),
+                div(input((
+                    attr::class("i-day"),
+                    attr::name("day"),
+                    attr::TypeInput::Number,
+                    attr::placeholder(1),
+                    attr::min(1),
+                    attr::max(31),
+                ))),
+                div(input((
+                    attr::class("i-dur"),
+                    attr::name("start"),
+                    attr::TypeInput::Text,
+                    attr::placeholder("12:34"),
+                ))),
+                div(input((
+                    attr::class("i-dur"),
+                    attr::name("end"),
+                    attr::TypeInput::Text,
+                    attr::placeholder("12:34"),
+                ))),
+                div(input((
+                    attr::class("i-dur"),
+                    attr::name("rest"),
+                    attr::TypeInput::Text,
+                    attr::placeholder("00:00"),
+                ))),
+                div(select((
+                    attr::name("note"),
+                    attr::value(""),
+                    option((attr::value(""), "Normal")),
+                    option((attr::value("U"), "Urlaub")),
+                    option((attr::value("K"), "Krankheit")),
+                    option((attr::value("F"), "Feiertag")),
+                    option((attr::value("S"), "Sonstiges")),
+                ))),
+            ))
+            .take(22)
+            .collect::<Vec<_>>(),
+        )),
+        button((
+            attr::id("submit"),
+            attr::TypeButton::Button,
+            "Arbeitszeitdokumentation generieren",
+        )),
+        pre(attr::id("info")),
+    ));
 
-                div #header {
-                    label #l-month for="i-month" { "Monat / Jahr:" }
-                    input #i-month name="month" type="month" placeholder=(month) value=(month) {}
-
-                    label #l-name for="i-name" { "Name, Vorname des/r Beschäftigten:" }
-                    input #i-name .twocol name="name" type="text" placeholder="McStudentface, Student" {}
-
-                    label #l-staffid for="i-staffid" { "Personalnummer:" }
-                    input #i-staffid name="staff_id" type="text" placeholder="1337420" {}
-
-                    div #gfub {
-                        label #l-gf title="Großforschung" { "GF: "
-                            input #i-gf name="working_area" type="radio" value="GF" {}
-                        }
-
-                        label #l-ub for="i-ub" title="Unibereich" { "UB: "
-                            input #i-ub name="working_area" type="radio" value="UB" checked {}
-                        }
-                    }
-
-                    label #l-department for="i-department" title="Organisationseinheit" { "OE:" }
-                    input #i-department .twocol name="department" type="text" placeholder="Institut für Informatik" value="Institut für Informatik" {}
-
-                    label #l-monthlyhours for="i-monthlyhours" { "Vertraglich vereinbarte Arbeitszeit:" }
-                    div #mhhr .twocol {
-                        span {
-                            input #i-monthlyhours name="monthly_hours" type="number" value="40" min="0" {}
-                            " Std."
-                        }
-                        span {
-                            label #l-hourlywage for="i-hourlywage" { "Stundensatz: " }
-                            input #i-hourlywage name="hourly_wage" type="number" step="0.01" value="14.09" {}
-                            " €"
-                        }
-                    }
-
-                    div #carry .twocol {
-                        span {
-                            label #l-carry for="i-carry" { "Übertrag vom Vormonat: " }
-                            input #i-carry .i-dur name="carry_prev_month" type="text" placeholder="00:00" {}
-                        }
-                    }
-
-                    label #check title="Die Tabelleneinträge werden chronologisch sortiert, anstatt dass ihre Reihenfolge beibehalten wird." {
-                        "Einträge sortieren "
-                        input name="sort" type="checkbox" value="true" checked {}
-                    }
-
-                    label #validate title="Die Tabelleneinträge werden auf Konsistenz und Korrektheit überprüft, bevor das Dokument generiert wird." {
-                        "Einträge validieren "
-                        input name="validate" type="checkbox" value="true" checked {}
-                    }
-                }
-
-                div #table {
-                    div #task { "Tätigkeit" br; "(Stichwort, Projekt)" }
-                    div { "Tag" }
-                    div { "Beginn" }
-                    div { "Ende" }
-                    div { "Pause" }
-                    div { "Arbeitszeit" }
-                    div { }
-                    div { "(hh:mm)" }
-                    div { "(hh:mm)" }
-                    div { "(hh:mm)" }
-                    div { }
-
-                    @for _ in 0..22 {
-                        div { input .i-task name="task" type="text" {} }
-                        div { input .i-day name="day" type="number" placeholder="1" min="1" max="31" {} }
-                        div { input .i-dur name="start" type="text" placeholder="12:34" {} }
-                        div { input .i-dur name="end" type="text" placeholder="12:34" {} }
-                        div { input .i-dur name="rest" type="text" placeholder="00:00" {} }
-                        div { select name="note" value="" {
-                            option value="" { "Normal" }
-                            option value="U" { "Urlaub" }
-                            option value="K" { "Krankheit" }
-                            option value="F" { "Feiertag" }
-                            option value="S" { "Sonstiges" }
-                        } }
-                    }
-                }
-
-                button #submit type="button" { "Arbeitszeitdokumentation generieren" }
-
-                pre #info {}
-            }
-        },
-    )
+    page(head, body)
 }
 
 #[derive(Debug, Deserialize)]

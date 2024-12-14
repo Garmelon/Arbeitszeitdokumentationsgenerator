@@ -8,9 +8,9 @@ anyhow = "1.0.94"
 axum = "0.7.9"
 axum-extra = { version = "0.9.6", features = ["form"] }
 clap = { version = "4.5.23", features = ["derive", "deprecated"] }
+el = { version = "0.1.2", features = ["axum"] }
 fontdb = "0.23.0"
 jiff = "0.1.15"
-maud = { version = "0.26.0", features = ["axum"] }
 serde = { version = "1.0.216", features = ["derive"] }
 tokio = { version = "1.42.0", features = ["full"] }
 typst = "0.12.0"

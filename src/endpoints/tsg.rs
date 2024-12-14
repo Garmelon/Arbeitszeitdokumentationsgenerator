@@ -3,7 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use maud::{html, Markup, PreEscaped};
+use el::{html::*, Document};
 use serde::Deserialize;
 
 use crate::{
@@ -11,53 +11,76 @@ use crate::{
     render::{self, Entry, Note, Timesheet, WorkingArea},
 };
 
-pub async fn get() -> Markup {
-    page(
-        html! {
-            style { (PreEscaped(include_str!("tsg.css"))) }
-            script type="module" { (PreEscaped(include_str!("tsg.js"))) }
-        },
-        html! {
-            form #form {
-                h1 {
-                    "Arbeitszeitdokumentationsgenerator "
-                    a #source href="https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator" { "(source)" }
-                }
+const LINK_SOURCE: &str = "https://github.com/Garmelon/Arbeitszeitdokumentationsgenerator";
 
-                p {
-                    "Du kannst deine Daten auch in einem "
-                    a href=".." { "coolen Formular" }
-                    " eingeben."
-                }
+pub async fn get() -> Document {
+    let head = (
+        style(include_str!("tsg.css")),
+        script((attr::TypeScript::Module, include_str!("tsg.js"))),
+    );
 
-                p {
-                    label for="i-global" { "Global.json" }
-                    textarea #i-global name="global" placeholder="{}" {}
-                }
+    let body = form((
+        attr::id("form"),
+        h1((
+            "Arbeitszeitdokumentationsgenerator ",
+            a((attr::id("source"), attr::href(LINK_SOURCE), "(source)")),
+        )),
+        p((
+            "Du kannst deine Daten auch in einem ",
+            a((attr::href(".."), "coolen Formular")),
+            " eingeben.",
+        )),
+        p((
+            label((attr::r#for("i-global"), "Global.json")),
+            textarea((
+                attr::id("i-global"),
+                attr::name("global"),
+                attr::placeholder("{}"),
+            )),
+        )),
+        p((
+            label((attr::r#for("i-month"), "Month.json")),
+            textarea((
+                attr::id("i-month"),
+                attr::name("month"),
+                attr::placeholder("{}"),
+            )),
+        )),
+        p((
+            label((
+                attr::title(concat!(
+                    "Die Einträge werden chronologisch sortiert,",
+                    " anstatt dass ihre Reihenfolge beibehalten wird."
+                )),
+                input((
+                    attr::name("sort"),
+                    attr::TypeInput::Checkbox,
+                    attr::checked(),
+                )),
+                " Einträge sortieren",
+            )),
+            label((
+                attr::title(concat!(
+                    "Die Einträge werden auf Konsistenz und Korrektheit überprüft,",
+                    " bevor das Dokument generiert wird."
+                )),
+                input((
+                    attr::name("validate"),
+                    attr::TypeInput::Checkbox,
+                    attr::checked(),
+                )),
+                " Einträge validieren",
+            )),
+        )),
+        button((
+            attr::id("submit"),
+            attr::TypeButton::Button,
+            "Arbeitszeitdokumentation generieren",
+        )),
+        pre(attr::id("info")),
+    ));
 
-                p {
-                    label for="i-month" { "Month.json" }
-                    textarea #i-month name="month" placeholder="{}" {}
-                }
-
-                p {
-                    label title="Die Einträge werden chronologisch sortiert, anstatt dass ihre Reihenfolge beibehalten wird." {
-                        input name="sort" type="checkbox" checked {}
-                        " Einträge sortieren"
-                    }
-
-                    label title="Die Einträge werden auf Konsistenz und Korrektheit überprüft, bevor das Dokument generiert wird." {
-                        input name="validate" type="checkbox" checked {}
-                        " Einträge validieren"
-                    }
-                }
-
-                button #submit type="button" { "Arbeitszeitdokumentation generieren" }
-
-                pre #info {}
-            }
-        },
-    )
+    page(head, body)
 }
 
 fn default_vacation() -> bool {
