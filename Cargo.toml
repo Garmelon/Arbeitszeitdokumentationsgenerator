@@ -13,5 +13,5 @@ fontdb = "0.23.0"
 jiff = "0.2.8"
 serde = { version = "1.0.219", features = ["derive"] }
 tokio = { version = "1.44.2", features = ["full"] }
-typst = "0.12.0"
-typst-pdf = "0.12.0"
+typst = "0.13.1"
+typst-pdf = "0.13.1"

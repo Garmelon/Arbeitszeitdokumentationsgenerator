@@ -169,8 +169,8 @@ impl FontSlot {
     pub fn get(&self) -> Option<Font> {
         self.font
             .get_or_init(|| {
-                let data = fs::read(&self.path).ok()?.into();
-                Font::new(data, self.index)
+                let data = fs::read(&self.path).ok()?;
+                Font::new(Bytes::new(data), self.index)
             })
             .clone()
     }
@@ -249,7 +249,7 @@ impl World for DummyWorld {
     fn file(&self, id: FileId) -> FileResult<Bytes> {
         let path = id.vpath().as_rootless_path();
         match path.to_string_lossy().as_ref() {
-            LOGO_NAME => Ok(Bytes::from_static(LOGO.as_bytes())),
+            LOGO_NAME => Ok(Bytes::new(LOGO.as_bytes())),
             _ => Err(FileError::NotFound(path.to_path_buf())),
         }
     }
