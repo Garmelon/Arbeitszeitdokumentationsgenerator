@@ -219,49 +219,51 @@ pub async fn get() -> Document {
             div("(hh:mm)"),
             div("(hh:mm)"),
             div(()),
-            iter::repeat((
-                div(input((
-                    attr::class("i-task"),
-                    attr::name("task"),
-                    attr::TypeInput::Text,
-                ))),
-                div(input((
-                    attr::class("i-day"),
-                    attr::name("day"),
-                    attr::TypeInput::Number,
-                    attr::placeholder(1),
-                    attr::min(1),
-                    attr::max(31),
-                ))),
-                div(input((
-                    attr::class("i-dur"),
-                    attr::name("start"),
-                    attr::TypeInput::Text,
-                    attr::placeholder("12:34"),
-                ))),
-                div(input((
-                    attr::class("i-dur"),
-                    attr::name("end"),
-                    attr::TypeInput::Text,
-                    attr::placeholder("12:34"),
-                ))),
-                div(input((
-                    attr::class("i-dur"),
-                    attr::name("rest"),
-                    attr::TypeInput::Text,
-                    attr::placeholder("00:00"),
-                ))),
-                div(select((
-                    attr::name("note"),
-                    attr::value(""),
-                    option((attr::value(""), "Normal")),
-                    option((attr::value("U"), "Urlaub")),
-                    option((attr::value("K"), "Krankheit")),
-                    option((attr::value("F"), "Feiertag")),
-                    option((attr::value("S"), "Sonstiges")),
-                ))),
-            ))
-            .take(22)
+            iter::repeat_n(
+                (
+                    div(input((
+                        attr::class("i-task"),
+                        attr::name("task"),
+                        attr::TypeInput::Text,
+                    ))),
+                    div(input((
+                        attr::class("i-day"),
+                        attr::name("day"),
+                        attr::TypeInput::Number,
+                        attr::placeholder(1),
+                        attr::min(1),
+                        attr::max(31),
+                    ))),
+                    div(input((
+                        attr::class("i-dur"),
+                        attr::name("start"),
+                        attr::TypeInput::Text,
+                        attr::placeholder("12:34"),
+                    ))),
+                    div(input((
+                        attr::class("i-dur"),
+                        attr::name("end"),
+                        attr::TypeInput::Text,
+                        attr::placeholder("12:34"),
+                    ))),
+                    div(input((
+                        attr::class("i-dur"),
+                        attr::name("rest"),
+                        attr::TypeInput::Text,
+                        attr::placeholder("00:00"),
+                    ))),
+                    div(select((
+                        attr::name("note"),
+                        attr::value(""),
+                        option((attr::value(""), "Normal")),
+                        option((attr::value("U"), "Urlaub")),
+                        option((attr::value("K"), "Krankheit")),
+                        option((attr::value("F"), "Feiertag")),
+                        option((attr::value("S"), "Sonstiges")),
+                    ))),
+                ),
+                22,
+            )
             .collect::<Vec<_>>(),
         )),
         button((
