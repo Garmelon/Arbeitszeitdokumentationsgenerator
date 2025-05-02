@@ -483,7 +483,7 @@
   }
 
   let monthly = duration(hours: monthly_hours)
-  let holiday = entries.filter(e => e.note == notes.Urlaub).map(e => e.duration).sum(default: duration(seconds: 0))
+  let holiday = entries.filter(e => e.note == notes.Urlaub).map(e => e.duration).sum(default: duration())
   let total = entries.map(e => e.duration).sum(default: duration())
   let carry_next_month = carry_prev_month + total - monthly
 
